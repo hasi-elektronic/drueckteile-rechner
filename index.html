@@ -4650,7 +4650,7 @@ window.generateDrueckteilSTEP=function(params){
 
 </script>
 
-<!-- === HASI ERWEITERUNGEN: Speichern/Laden + Validierung + Stückliste === -->
+<!-- === HASI ERWEITERUNGEN: Speichern/Laden + Validierung === -->
 <style>
 /* Toolbar */
 .hasi-toolbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:2px solid #1B5E9E;padding:6px 16px;display:flex;align-items:center;gap:8px;z-index:9999;box-shadow:0 -2px 12px rgba(0,0,0,.12);flex-wrap:wrap}
@@ -4658,7 +4658,7 @@ window.generateDrueckteilSTEP=function(params){
 .htb-save{background:#1B5E9E;color:#fff}.htb-save:hover{background:#14486F}
 .htb-load{background:#2E7D32;color:#fff}.htb-load:hover{background:#1B5E20}
 .htb-del{background:#C62828;color:#fff}.htb-del:hover{background:#8E0000}
-.htb-list{background:#E65100;color:#fff}.htb-list:hover{background:#BF360C}
+/* Validierung */
 .htb-info{color:#6D6E71;font-size:.72rem;margin-left:auto}
 
 /* Modal */
@@ -4677,12 +4677,7 @@ window.generateDrueckteilSTEP=function(params){
 .hasi-saved-item .si-info{font-size:.72rem;color:#6D6E71}
 .hasi-saved-item .si-del{background:#C62828;color:#fff;border:none;padding:4px 8px;border-radius:4px;font-size:.7rem;cursor:pointer}
 
-/* Stückliste */
-.hasi-stk-table{width:100%;border-collapse:collapse;font-size:.8rem}
-.hasi-stk-table th{background:#1B5E9E;color:#fff;padding:8px 10px;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.3px}
-.hasi-stk-table td{padding:6px 10px;border-bottom:1px solid #E2E4E8}
-.hasi-stk-table tr:hover{background:rgba(27,94,158,.04)}
-.hasi-stk-table .stk-total{font-weight:700;color:#1B5E9E;border-top:2px solid #1B5E9E}
+/* Toolbar */
 
 /* Validierung */
 .hasi-warn{position:fixed;top:12px;right:12px;z-index:10001;display:flex;flex-direction:column;gap:6px;max-width:360px}
@@ -4699,7 +4694,6 @@ body{padding-bottom:56px}
 <div class="hasi-toolbar" id="hasiToolbar">
   <button class="htb htb-save" onclick="hasiSave()" title="Auftrag speichern">💾 Speichern</button>
   <button class="htb htb-load" onclick="hasiShowLoad()" title="Gespeicherte Aufträge">📂 Laden</button>
-  <button class="htb htb-list" onclick="hasiShowList()" title="Stückliste anzeigen">📋 Stückliste</button>
   <span class="htb-info" id="hasiStatus"></span>
 </div>
 <div class="hasi-warn" id="hasiWarnings"></div>
@@ -4837,13 +4831,8 @@ body{padding-bottom:56px}
     window.hasiShowLoad();
   };
 
-  // ===== 3. STÜCKLISTE =====
-  var stueckliste = JSON.parse(sessionStorage.getItem('hasi_stueckliste') || '[]');
-
-  window.hasiAddToList = function(){
-    var formData = readForm();
-    var kunde = formData['kunde'] || formData['input_0'] || '—';
-    // Try to extract computed values from DOM
+  // ===== 4. VALIDIERUNG =====
+  function runValidation(){
     var diEl = document.querySelectorAll('.ri .vl, .ab-cell.val-blue, .ab-cell.val-result');
     var values = {};
     diEl.forEach(function(el){
@@ -4853,128 +4842,6 @@ body{padding-bottom:56px}
         if(lbl) values[lbl.textContent.trim()] = el.textContent.trim();
       }
     });
-
-    stueckliste.push({
-      id: Date.now(),
-      kunde: kunde,
-      dvNr: formData['dv-nr.'] || formData['input_1'] || '—',
-      typ: formData['teiltyp'] || '—',
-      De: formData['de'] || formData['input_5'] || '—',
-      s: formData['s_(mm)'] || formData['materialdicke'] || formData['input_7'] || '—',
-      stueck: formData['stückzahl'] || formData['input_11'] || '1',
-      material: (document.querySelector('.mat-badge select') || {}).value || '—',
-      timestamp: new Date().toLocaleString('de-DE')
-    });
-    sessionStorage.setItem('hasi_stueckliste', JSON.stringify(stueckliste));
-    hasiNotify('✅ Zur Stückliste hinzugefügt (' + stueckliste.length + ' Positionen)', 'ok');
-  };
-
-  window.hasiShowList = function(){
-    if(stueckliste.length === 0){
-      var html = '<div class="hasi-modal-body" style="text-align:center;padding:30px">';
-      html += '<p style="color:#9EA0A3;margin-bottom:12px">Noch keine Positionen in der Stückliste.</p>';
-      html += '<button class="htb htb-save" onclick="hasiAddToList();closeModal();hasiShowList()">+ Aktuelle Berechnung hinzufügen</button>';
-      html += '</div>';
-      showModal('📋 Stückliste', html);
-      return;
-    }
-    var html = '<div class="hasi-modal-body">';
-    html += '<table class="hasi-stk-table"><thead><tr>';
-    html += '<th>#</th><th>Kunde</th><th>DV-Nr.</th><th>Typ</th><th>De</th><th>s</th><th>Stk</th><th>Material</th><th></th>';
-    html += '</tr></thead><tbody>';
-    stueckliste.forEach(function(s, i){
-      html += '<tr><td>'+(i+1)+'</td><td>'+escH(s.kunde)+'</td><td>'+escH(s.dvNr)+'</td>';
-      html += '<td>'+escH(s.typ)+'</td><td>'+escH(s.De)+'</td><td>'+escH(s.s)+'</td>';
-      html += '<td>'+escH(s.stueck)+'</td><td>'+escH(s.material)+'</td>';
-      html += '<td><button class="si-del" onclick="hasiRemoveFromList('+i+')">🗑</button></td></tr>';
-    });
-    html += '</tbody></table>';
-    html += '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">';
-    html += '<button class="htb htb-save" onclick="hasiAddToList();closeModal();hasiShowList()">+ Aktuelle hinzufügen</button>';
-    html += '<button class="htb htb-del" onclick="hasiClearList()">Alle löschen</button>';
-    html += '<button class="htb" style="background:#1B5E9E;color:#fff" onclick="hasiPrintList()">🖨 Stückliste drucken</button>';
-    html += '</div></div>';
-    showModal('📋 Stückliste — ' + stueckliste.length + ' Positionen', html);
-  };
-
-  window.hasiRemoveFromList = function(idx){
-    stueckliste.splice(idx, 1);
-    sessionStorage.setItem('hasi_stueckliste', JSON.stringify(stueckliste));
-    closeModal();
-    hasiShowList();
-  };
-
-  window.hasiClearList = function(){
-    if(!confirm('Stückliste wirklich komplett löschen?')) return;
-    stueckliste.length = 0;
-    sessionStorage.setItem('hasi_stueckliste', JSON.stringify(stueckliste));
-    closeModal();
-    hasiNotify('Stückliste geleert', 'warn');
-  };
-
-  window.hasiPrintList = function(){
-    var w = window.open('','','width=900,height=700');
-    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Stückliste</title><style>';
-    html += 'body{font-family:Arial,sans-serif;padding:20px;font-size:10pt}';
-    html += 'h1{color:#1B5E9E;font-size:14pt;margin-bottom:4px}';
-    html += '.sub{color:#6D6E71;font-size:8pt;margin-bottom:12px}';
-    html += 'table{width:100%;border-collapse:collapse}';
-    html += 'th{background:#1B5E9E;color:#fff;padding:6px 8px;text-align:left;font-size:8pt}';
-    html += 'td{padding:5px 8px;border-bottom:1px solid #ddd;font-size:9pt}';
-    html += '.ft{margin-top:16px;border-top:1px solid #1B5E9E;padding-top:6px;font-size:7pt;color:#9EA0A3;display:flex;justify-content:space-between}';
-    html += '</style></head><body>';
-    html += '<h1>Manfred Sickinger GmbH — Stückliste</h1>';
-    html += '<div class="sub">Erstellt: '+new Date().toLocaleString('de-DE')+'</div>';
-    html += '<table><tr><th>#</th><th>Kunde</th><th>DV-Nr.</th><th>Typ</th><th>De (mm)</th><th>s (mm)</th><th>Stk</th><th>Material</th></tr>';
-    stueckliste.forEach(function(s,i){
-      html += '<tr><td>'+(i+1)+'</td><td>'+escH(s.kunde)+'</td><td>'+escH(s.dvNr)+'</td>';
-      html += '<td>'+escH(s.typ)+'</td><td>'+escH(s.De)+'</td><td>'+escH(s.s)+'</td>';
-      html += '<td>'+escH(s.stueck)+'</td><td>'+escH(s.material)+'</td></tr>';
-    });
-    html += '</table>';
-    html += '<div class="ft"><span>Drückteile Rechner — Hasi Elektronic</span><span>'+stueckliste.length+' Positionen</span></div>';
-    html += '</body></html>';
-    w.document.write(html);
-    w.document.close();
-    w.print();
-  };
-
-  // ===== EXCEL EXPORT =====
-  window.hasiExportExcel = function(){
-    if(stueckliste.length === 0){ hasiNotify('Stückliste ist leer','warn'); return; }
-    var sep = '\t';
-    var lines = ['Pos'+sep+'Kunde'+sep+'DV-Nr.'+sep+'Typ'+sep+'De (mm)'+sep+'s (mm)'+sep+'Stück'+sep+'Material'+sep+'Datum'];
-    stueckliste.forEach(function(s,i){
-      lines.push((i+1)+sep+(s.kunde||'')+sep+(s.dvNr||'')+sep+(s.typ||'')+sep+(s.De||'')+sep+(s.s||'')+sep+(s.stueck||'')+sep+(s.material||'')+sep+(s.timestamp||''));
-    });
-    var blob = new Blob(['\uFEFF'+lines.join('\n')], {type:'text/tab-separated-values;charset=utf-8'});
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'Stueckliste_'+new Date().toISOString().slice(0,10)+'.xls';
-    a.click();
-    URL.revokeObjectURL(a.href);
-    hasiNotify('📊 Excel-Datei heruntergeladen','ok');
-  };
-
-  // ===== GESAMTKALKULATION =====
-  window.hasiKalkGesamt = function(){
-    if(stueckliste.length === 0){ hasiNotify('Stückliste ist leer','warn'); return; }
-    var html = '<div style="padding:12px">';
-    html += '<table style="width:100%;border-collapse:collapse;font-size:.82rem">';
-    html += '<thead><tr style="background:#1B5E9E;color:#fff"><th style="padding:6px 8px;text-align:left">#</th><th style="padding:6px 8px;text-align:left">Kunde</th><th style="padding:6px 8px;text-align:left">De</th><th style="padding:6px 8px;text-align:left">s</th><th style="padding:6px 8px;text-align:right">Stk</th><th style="padding:6px 8px;text-align:left">Material</th></tr></thead><tbody>';
-    stueckliste.forEach(function(s,i){
-      html += '<tr style="border-bottom:1px solid #eee"><td style="padding:5px 8px">'+(i+1)+'</td><td style="padding:5px 8px">'+escH(s.kunde)+'</td><td style="padding:5px 8px">'+escH(s.De)+'</td><td style="padding:5px 8px">'+escH(s.s)+'</td><td style="padding:5px 8px;text-align:right">'+escH(s.stueck)+'</td><td style="padding:5px 8px">'+escH(s.material)+'</td></tr>';
-    });
-    var totalStk = stueckliste.reduce(function(a,s){ return a + (parseInt(s.stueck)||0); }, 0);
-    html += '</tbody></table>';
-    html += '<div style="margin-top:12px;padding:10px;background:#f0f4f8;border-radius:8px;display:flex;justify-content:space-between;align-items:center">';
-    html += '<div><strong>'+stueckliste.length+' Positionen</strong> · Gesamt: <strong>'+totalStk+' Stück</strong></div>';
-    html += '<div style="display:flex;gap:8px">';
-    html += '<button class="htb" onclick="closeModal();hasiPrintList()" style="background:#1B5E9E;color:#fff;padding:6px 12px;border-radius:6px;font-size:.78rem;cursor:pointer">🖨 Drucken</button>';
-    html += '<button class="htb" onclick="closeModal();hasiExportExcel()" style="background:#217346;color:#fff;padding:6px 12px;border-radius:6px;font-size:.78rem;cursor:pointer">📊 Excel</button>';
-    html += '</div></div></div>';
-    showModal('💰 Gesamtkalkulation — '+stueckliste.length+' Positionen', html);
-  };
 
   // ===== 4. VALIDIERUNG =====
   function runValidation(){
