@@ -2223,9 +2223,6 @@ function App() {
   var TABS = [{
     id: "calc",
     label: "Düse / Deckscheibe"
-  }, {
-    id: "konus",
-    label: "Konusabwicklung"
   }];
   var SUB_TABS = [{
     id: "auftragsblatt",
@@ -4870,20 +4867,6 @@ body{padding-bottom:56px}
     });
     sessionStorage.setItem('hasi_stueckliste', JSON.stringify(stueckliste));
     hasiNotify('✅ Zur Stückliste hinzugefügt (' + stueckliste.length + ' Positionen)', 'ok');
-    // Show action chooser
-    setTimeout(function(){
-      var html = '<div style="padding:16px;text-align:center">';
-      html += '<p style="margin-bottom:16px;color:var(--tx);font-size:.9rem"><strong>' + stueckliste.length + ' Position(en)</strong> in der Stückliste. Was möchten Sie tun?</p>';
-      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:400px;margin:0 auto">';
-      html += '<button class="htb" onclick="closeModal();hasiShowList()" style="background:#f0f4f8;color:#1B5E9E;border:1px solid #1B5E9E;padding:12px 8px;border-radius:8px;font-size:.82rem;cursor:pointer">📋 Liste anzeigen</button>';
-      html += '<button class="htb" onclick="closeModal();hasiPrintList()" style="background:#1B5E9E;color:#fff;padding:12px 8px;border-radius:8px;font-size:.82rem;cursor:pointer">🖨 Auftragsblätter drucken</button>';
-      html += '<button class="htb" onclick="closeModal();hasiExportExcel()" style="background:#217346;color:#fff;padding:12px 8px;border-radius:8px;font-size:.82rem;cursor:pointer">📊 Excel Export</button>';
-      html += '<button class="htb" onclick="closeModal();hasiKalkGesamt()" style="background:#E65100;color:#fff;padding:12px 8px;border-radius:8px;font-size:.82rem;cursor:pointer">💰 Gesamtkalkulation</button>';
-      html += '</div>';
-      html += '<div style="margin-top:14px"><button class="htb" onclick="closeModal()" style="background:transparent;color:var(--gray);border:none;font-size:.78rem;cursor:pointer">Später — weiter rechnen</button></div>';
-      html += '</div>';
-      showModal('📋 Stückliste — Was nun?', html);
-    }, 400);
   };
 
   window.hasiShowList = function(){
