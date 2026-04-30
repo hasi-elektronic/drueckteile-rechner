@@ -4574,5 +4574,386 @@ window.generateDrueckteilSTEP=function(params){
 };
 
 </script>
+
+<!-- === HASI ERWEITERUNGEN: Speichern/Laden + Validierung + Stückliste === -->
+<style>
+/* Toolbar */
+.hasi-toolbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:2px solid #1B5E9E;padding:6px 16px;display:flex;align-items:center;gap:8px;z-index:9999;box-shadow:0 -2px 12px rgba(0,0,0,.12);flex-wrap:wrap}
+.hasi-toolbar .htb{padding:7px 14px;border:none;border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:inherit;transition:all .15s}
+.htb-save{background:#1B5E9E;color:#fff}.htb-save:hover{background:#14486F}
+.htb-load{background:#2E7D32;color:#fff}.htb-load:hover{background:#1B5E20}
+.htb-del{background:#C62828;color:#fff}.htb-del:hover{background:#8E0000}
+.htb-list{background:#E65100;color:#fff}.htb-list:hover{background:#BF360C}
+.htb-info{color:#6D6E71;font-size:.72rem;margin-left:auto}
+
+/* Modal */
+.hasi-modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:10000;display:flex;align-items:center;justify-content:center}
+.hasi-modal{background:#fff;border-radius:12px;padding:0;width:92%;max-width:700px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.hasi-modal-hdr{background:#1B5E9E;color:#fff;padding:14px 20px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center}
+.hasi-modal-hdr h3{font-size:.95rem;font-weight:700;margin:0}
+.hasi-modal-close{background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px}
+.hasi-modal-body{padding:16px 20px}
+
+/* Saved list */
+.hasi-saved-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #E2E4E8;border-radius:8px;margin-bottom:6px;cursor:pointer;transition:all .15s}
+.hasi-saved-item:hover{border-color:#1B5E9E;background:rgba(27,94,158,.04)}
+.hasi-saved-item .si-name{font-weight:600;font-size:.85rem;flex:1}
+.hasi-saved-item .si-date{font-size:.7rem;color:#9EA0A3}
+.hasi-saved-item .si-info{font-size:.72rem;color:#6D6E71}
+.hasi-saved-item .si-del{background:#C62828;color:#fff;border:none;padding:4px 8px;border-radius:4px;font-size:.7rem;cursor:pointer}
+
+/* Stückliste */
+.hasi-stk-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.hasi-stk-table th{background:#1B5E9E;color:#fff;padding:8px 10px;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.3px}
+.hasi-stk-table td{padding:6px 10px;border-bottom:1px solid #E2E4E8}
+.hasi-stk-table tr:hover{background:rgba(27,94,158,.04)}
+.hasi-stk-table .stk-total{font-weight:700;color:#1B5E9E;border-top:2px solid #1B5E9E}
+
+/* Validierung */
+.hasi-warn{position:fixed;top:12px;right:12px;z-index:10001;display:flex;flex-direction:column;gap:6px;max-width:360px}
+.hasi-warn-item{padding:10px 14px;border-radius:8px;font-size:.78rem;font-weight:500;display:flex;align-items:flex-start;gap:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);animation:hwSlide .3s ease}
+.hasi-warn-item.hw-warn{background:#FFF3E0;border:1px solid #E65100;color:#BF360C}
+.hasi-warn-item.hw-err{background:#FFEBEE;border:1px solid #C62828;color:#B71C1C}
+.hasi-warn-item.hw-ok{background:#E8F5E9;border:1px solid #2E7D32;color:#1B5E20}
+@keyframes hwSlide{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+
+/* Padding bottom for toolbar */
+body{padding-bottom:56px}
+</style>
+
+<div class="hasi-toolbar" id="hasiToolbar">
+  <button class="htb htb-save" onclick="hasiSave()" title="Auftrag speichern">💾 Speichern</button>
+  <button class="htb htb-load" onclick="hasiShowLoad()" title="Gespeicherte Aufträge">📂 Laden</button>
+  <button class="htb htb-list" onclick="hasiShowList()" title="Stückliste anzeigen">📋 Stückliste</button>
+  <span class="htb-info" id="hasiStatus"></span>
+</div>
+<div class="hasi-warn" id="hasiWarnings"></div>
+
+<script>
+(function(){
+  // ===== HELPER: Read all form values from DOM =====
+  function readForm(){
+    var data = {};
+    var inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(function(el){
+      var key = el.name || el.id || el.getAttribute('data-field');
+      if(!key){
+        // Try to find label
+        var row = el.closest('.info-row, .ab-row, .fg, .ab-cell, .ab-check, .param-row, .cb');
+        if(row){
+          var lbl = row.querySelector('label, .info-lbl, .lbl, .ab-cell.lbl');
+          if(lbl) key = lbl.textContent.trim().replace(/[:\s\/]+/g,'_').toLowerCase();
+        }
+      }
+      if(!key) key = 'input_' + Array.from(document.querySelectorAll('input,select,textarea')).indexOf(el);
+      if(el.type === 'checkbox' || el.type === 'radio'){
+        if(el.type === 'radio'){
+          if(el.checked) data[key] = el.value || el.parentElement.textContent.trim();
+        } else {
+          data[key] = el.checked;
+        }
+      } else {
+        data[key] = el.value;
+      }
+    });
+    return data;
+  }
+
+  // ===== HELPER: Write form values to DOM =====
+  function writeForm(data){
+    var inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(function(el){
+      var key = el.name || el.id || el.getAttribute('data-field');
+      if(!key){
+        var row = el.closest('.info-row, .ab-row, .fg, .ab-cell, .ab-check, .param-row, .cb');
+        if(row){
+          var lbl = row.querySelector('label, .info-lbl, .lbl, .ab-cell.lbl');
+          if(lbl) key = lbl.textContent.trim().replace(/[:\s\/]+/g,'_').toLowerCase();
+        }
+      }
+      if(!key) key = 'input_' + Array.from(document.querySelectorAll('input,select,textarea')).indexOf(el);
+      if(data.hasOwnProperty(key)){
+        if(el.type === 'checkbox'){
+          el.checked = !!data[key];
+        } else if(el.type === 'radio'){
+          el.checked = (data[key] === (el.value || el.parentElement.textContent.trim()));
+        } else {
+          var nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value');
+          if(nativeInputValueSetter && nativeInputValueSetter.set && el.tagName === 'INPUT'){
+            nativeInputValueSetter.set.call(el, data[key]);
+          } else if(el.tagName === 'SELECT'){
+            var nativeSelectSetter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value');
+            if(nativeSelectSetter && nativeSelectSetter.set) nativeSelectSetter.set.call(el, data[key]);
+            else el.value = data[key];
+          } else {
+            el.value = data[key];
+          }
+        }
+        el.dispatchEvent(new Event('input', {bubbles:true}));
+        el.dispatchEvent(new Event('change', {bubbles:true}));
+      }
+    });
+  }
+
+  // ===== 1. SPEICHERN =====
+  window.hasiSave = function(){
+    var formData = readForm();
+    var name = prompt('Auftragsname eingeben:', formData['kunde'] || formData['input_0'] || 'Auftrag');
+    if(!name) return;
+
+    var saved = JSON.parse(localStorage.getItem('hasi_auftraege') || '[]');
+    var entry = {
+      id: Date.now(),
+      name: name,
+      date: new Date().toLocaleString('de-DE'),
+      data: formData,
+      summary: {
+        kunde: formData['kunde'] || formData['input_0'] || '—',
+        typ: (document.querySelector('input[type=radio]:checked') || {}).parentElement ?
+              document.querySelector('.ab-check input[type=radio]:checked') ?
+              document.querySelector('.ab-check input[type=radio]:checked').parentElement.textContent.trim() : '—' : '—',
+        material: (document.querySelector('.mat-badge select') || {}).value || '—'
+      }
+    };
+    saved.unshift(entry);
+    if(saved.length > 50) saved = saved.slice(0, 50);
+    localStorage.setItem('hasi_auftraege', JSON.stringify(saved));
+    hasiNotify('✅ Auftrag "' + name + '" gespeichert', 'ok');
+    updateStatus();
+  };
+
+  // ===== 2. LADEN =====
+  window.hasiShowLoad = function(){
+    var saved = JSON.parse(localStorage.getItem('hasi_auftraege') || '[]');
+    if(saved.length === 0){
+      hasiNotify('Keine gespeicherten Aufträge vorhanden', 'warn');
+      return;
+    }
+    var html = '<div class="hasi-modal-body">';
+    saved.forEach(function(s, i){
+      html += '<div class="hasi-saved-item" onclick="hasiLoad('+s.id+')">';
+      html += '<div style="flex:1"><div class="si-name">'+escH(s.name)+'</div>';
+      html += '<div class="si-info">'+(s.summary ? escH(s.summary.kunde)+' · '+escH(s.summary.typ)+' · '+escH(s.summary.material) : '')+'</div></div>';
+      html += '<div class="si-date">'+escH(s.date)+'</div>';
+      html += '<button class="si-del" onclick="event.stopPropagation();hasiDelete('+s.id+')">🗑</button>';
+      html += '</div>';
+    });
+    html += '</div>';
+    showModal('📂 Gespeicherte Aufträge ('+saved.length+')', html);
+  };
+
+  window.hasiLoad = function(id){
+    var saved = JSON.parse(localStorage.getItem('hasi_auftraege') || '[]');
+    var entry = saved.find(function(s){ return s.id === id; });
+    if(!entry){ hasiNotify('Auftrag nicht gefunden', 'err'); return; }
+    writeForm(entry.data);
+    closeModal();
+    hasiNotify('✅ Auftrag "' + entry.name + '" geladen', 'ok');
+  };
+
+  window.hasiDelete = function(id){
+    if(!confirm('Auftrag wirklich löschen?')) return;
+    var saved = JSON.parse(localStorage.getItem('hasi_auftraege') || '[]');
+    saved = saved.filter(function(s){ return s.id !== id; });
+    localStorage.setItem('hasi_auftraege', JSON.stringify(saved));
+    hasiNotify('Auftrag gelöscht', 'warn');
+    updateStatus();
+    closeModal();
+    window.hasiShowLoad();
+  };
+
+  // ===== 3. STÜCKLISTE =====
+  var stueckliste = JSON.parse(sessionStorage.getItem('hasi_stueckliste') || '[]');
+
+  window.hasiAddToList = function(){
+    var formData = readForm();
+    var kunde = formData['kunde'] || formData['input_0'] || '—';
+    // Try to extract computed values from DOM
+    var diEl = document.querySelectorAll('.ri .vl, .ab-cell.val-blue, .ab-cell.val-result');
+    var values = {};
+    diEl.forEach(function(el){
+      var row = el.closest('.ri, .ab-row');
+      if(row){
+        var lbl = row.querySelector('.lb, .ab-cell.lbl');
+        if(lbl) values[lbl.textContent.trim()] = el.textContent.trim();
+      }
+    });
+
+    stueckliste.push({
+      id: Date.now(),
+      kunde: kunde,
+      dvNr: formData['dv-nr.'] || formData['input_1'] || '—',
+      typ: formData['teiltyp'] || '—',
+      De: formData['de'] || formData['input_5'] || '—',
+      s: formData['s_(mm)'] || formData['materialdicke'] || formData['input_7'] || '—',
+      stueck: formData['stückzahl'] || formData['input_11'] || '1',
+      material: (document.querySelector('.mat-badge select') || {}).value || '—',
+      timestamp: new Date().toLocaleString('de-DE')
+    });
+    sessionStorage.setItem('hasi_stueckliste', JSON.stringify(stueckliste));
+    hasiNotify('✅ Zur Stückliste hinzugefügt (' + stueckliste.length + ' Positionen)', 'ok');
+  };
+
+  window.hasiShowList = function(){
+    if(stueckliste.length === 0){
+      var html = '<div class="hasi-modal-body" style="text-align:center;padding:30px">';
+      html += '<p style="color:#9EA0A3;margin-bottom:12px">Noch keine Positionen in der Stückliste.</p>';
+      html += '<button class="htb htb-save" onclick="hasiAddToList();closeModal();hasiShowList()">+ Aktuelle Berechnung hinzufügen</button>';
+      html += '</div>';
+      showModal('📋 Stückliste', html);
+      return;
+    }
+    var html = '<div class="hasi-modal-body">';
+    html += '<table class="hasi-stk-table"><thead><tr>';
+    html += '<th>#</th><th>Kunde</th><th>DV-Nr.</th><th>Typ</th><th>De</th><th>s</th><th>Stk</th><th>Material</th><th></th>';
+    html += '</tr></thead><tbody>';
+    stueckliste.forEach(function(s, i){
+      html += '<tr><td>'+(i+1)+'</td><td>'+escH(s.kunde)+'</td><td>'+escH(s.dvNr)+'</td>';
+      html += '<td>'+escH(s.typ)+'</td><td>'+escH(s.De)+'</td><td>'+escH(s.s)+'</td>';
+      html += '<td>'+escH(s.stueck)+'</td><td>'+escH(s.material)+'</td>';
+      html += '<td><button class="si-del" onclick="hasiRemoveFromList('+i+')">🗑</button></td></tr>';
+    });
+    html += '</tbody></table>';
+    html += '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">';
+    html += '<button class="htb htb-save" onclick="hasiAddToList();closeModal();hasiShowList()">+ Aktuelle hinzufügen</button>';
+    html += '<button class="htb htb-del" onclick="hasiClearList()">Alle löschen</button>';
+    html += '<button class="htb" style="background:#1B5E9E;color:#fff" onclick="hasiPrintList()">🖨 Stückliste drucken</button>';
+    html += '</div></div>';
+    showModal('📋 Stückliste — ' + stueckliste.length + ' Positionen', html);
+  };
+
+  window.hasiRemoveFromList = function(idx){
+    stueckliste.splice(idx, 1);
+    sessionStorage.setItem('hasi_stueckliste', JSON.stringify(stueckliste));
+    closeModal();
+    hasiShowList();
+  };
+
+  window.hasiClearList = function(){
+    if(!confirm('Stückliste wirklich komplett löschen?')) return;
+    stueckliste.length = 0;
+    sessionStorage.setItem('hasi_stueckliste', JSON.stringify(stueckliste));
+    closeModal();
+    hasiNotify('Stückliste geleert', 'warn');
+  };
+
+  window.hasiPrintList = function(){
+    var w = window.open('','','width=900,height=700');
+    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Stückliste</title><style>';
+    html += 'body{font-family:Arial,sans-serif;padding:20px;font-size:10pt}';
+    html += 'h1{color:#1B5E9E;font-size:14pt;margin-bottom:4px}';
+    html += '.sub{color:#6D6E71;font-size:8pt;margin-bottom:12px}';
+    html += 'table{width:100%;border-collapse:collapse}';
+    html += 'th{background:#1B5E9E;color:#fff;padding:6px 8px;text-align:left;font-size:8pt}';
+    html += 'td{padding:5px 8px;border-bottom:1px solid #ddd;font-size:9pt}';
+    html += '.ft{margin-top:16px;border-top:1px solid #1B5E9E;padding-top:6px;font-size:7pt;color:#9EA0A3;display:flex;justify-content:space-between}';
+    html += '</style></head><body>';
+    html += '<h1>Manfred Sickinger GmbH — Stückliste</h1>';
+    html += '<div class="sub">Erstellt: '+new Date().toLocaleString('de-DE')+'</div>';
+    html += '<table><tr><th>#</th><th>Kunde</th><th>DV-Nr.</th><th>Typ</th><th>De (mm)</th><th>s (mm)</th><th>Stk</th><th>Material</th></tr>';
+    stueckliste.forEach(function(s,i){
+      html += '<tr><td>'+(i+1)+'</td><td>'+escH(s.kunde)+'</td><td>'+escH(s.dvNr)+'</td>';
+      html += '<td>'+escH(s.typ)+'</td><td>'+escH(s.De)+'</td><td>'+escH(s.s)+'</td>';
+      html += '<td>'+escH(s.stueck)+'</td><td>'+escH(s.material)+'</td></tr>';
+    });
+    html += '</table>';
+    html += '<div class="ft"><span>Drückteile Rechner — Hasi Elektronic</span><span>'+stueckliste.length+' Positionen</span></div>';
+    html += '</body></html>';
+    w.document.write(html);
+    w.document.close();
+    w.print();
+  };
+
+  // ===== 4. VALIDIERUNG =====
+  function runValidation(){
+    var warnings = [];
+    var inputs = document.querySelectorAll('input[type=number]');
+    inputs.forEach(function(el){
+      var v = parseFloat(el.value);
+      if(isNaN(v)) return;
+      var row = el.closest('.fg, .ab-row, .info-row, .ab-cell');
+      var lbl = '';
+      if(row){
+        var lblEl = row.querySelector('label, .info-lbl, .ab-cell.lbl');
+        if(lblEl) lbl = lblEl.textContent.trim();
+      }
+      // Wandstärke check
+      if(lbl.match(/S\s*\(mm\)|Materialdicke|Blechst/i)){
+        if(v < 0.5) warnings.push({msg:'Wandstärke '+v+'mm zu dünn — Minimum 0.5mm', type:'err'});
+        if(v > 25) warnings.push({msg:'Wandstärke '+v+'mm ungewöhnlich dick — prüfen', type:'warn'});
+      }
+      // De check
+      if(lbl.match(/^De$|Enddurchmesser|Außendurchmesser/i)){
+        if(v < 50) warnings.push({msg:'De='+v+'mm sehr klein — prüfen', type:'warn'});
+        if(v > 3000) warnings.push({msg:'De='+v+'mm extrem groß — Maschinenkapazität prüfen', type:'warn'});
+      }
+      // Radius check
+      if(lbl.match(/^R$|^Radius$/i) && v !== 0){
+        if(v < 3) warnings.push({msg:'Radius '+v+'mm zu klein — Rissbildung möglich', type:'err'});
+      }
+      // Stückzahl
+      if(lbl.match(/Stück/i)){
+        if(v <= 0) warnings.push({msg:'Stückzahl muss > 0 sein', type:'err'});
+      }
+    });
+    showWarnings(warnings);
+  }
+
+  // Validation on input change (debounced)
+  var valTimer;
+  document.addEventListener('input', function(e){
+    if(e.target.type === 'number'){
+      clearTimeout(valTimer);
+      valTimer = setTimeout(runValidation, 800);
+    }
+  });
+
+  // ===== UI HELPERS =====
+  function showWarnings(warnings){
+    var container = document.getElementById('hasiWarnings');
+    container.innerHTML = '';
+    warnings.forEach(function(w){
+      var div = document.createElement('div');
+      div.className = 'hasi-warn-item hw-' + w.type;
+      div.innerHTML = (w.type==='err'?'⛔':'⚠️') + ' ' + w.msg;
+      container.appendChild(div);
+      setTimeout(function(){ if(div.parentNode) div.remove(); }, 6000);
+    });
+  }
+
+  function hasiNotify(msg, type){
+    var container = document.getElementById('hasiWarnings');
+    var div = document.createElement('div');
+    div.className = 'hasi-warn-item hw-' + (type || 'ok');
+    div.textContent = msg;
+    container.appendChild(div);
+    setTimeout(function(){ if(div.parentNode) div.remove(); }, 3000);
+  }
+
+  var currentModal = null;
+  function showModal(title, bodyHtml){
+    closeModal();
+    var bg = document.createElement('div');
+    bg.className = 'hasi-modal-bg';
+    bg.onclick = function(e){ if(e.target === bg) closeModal(); };
+    bg.innerHTML = '<div class="hasi-modal"><div class="hasi-modal-hdr"><h3>'+title+'</h3><button class="hasi-modal-close" onclick="closeModal()">✕</button></div>'+bodyHtml+'</div>';
+    document.body.appendChild(bg);
+    currentModal = bg;
+  }
+  window.closeModal = function(){
+    if(currentModal){ currentModal.remove(); currentModal = null; }
+  };
+
+  function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function updateStatus(){
+    var saved = JSON.parse(localStorage.getItem('hasi_auftraege') || '[]');
+    var el = document.getElementById('hasiStatus');
+    if(el) el.textContent = saved.length > 0 ? saved.length + ' Aufträge gespeichert' : '';
+  }
+  updateStatus();
+})();
+</script>
+
 </body>
 </html>
