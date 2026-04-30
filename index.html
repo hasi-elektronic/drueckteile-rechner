@@ -460,6 +460,67 @@ null})}),!0):!1};M.unstable_batchedUpdates=ai;M.unstable_createPortal=function(a
 })();
 
 </script>
+<!-- STAMMDATEN Sickinger DB Export 30.04.2026 -->
+<script>
+var STAMM_KUNDEN=["Actiro", "B-Luft", "B-Luft-D", "Berliner Luft Deutschland", "Bühler", "CFT", "DUV", "EVG", "Ehehalt", "Elektror", "Elektror Polen", "FIMA", "Frankenberger", "Frankenberger Ing.-Büro", "Gebhardt", "Gebr. Schmidt", "HLU", "HPF", "Howden", "Joh Müller Kunststoff", "Kamptmann", "Karl Klein", "Karl Klein Peter", "Karl KleinPeter", "Klingel", "Konz", "Konz-Lufttechnik", "Kovodruzstvo", "Kreisel", "LTG", "LWN", "Lung", "MAZ", "MVB", "Mauser", "Meierling", "Milde", "NETECS", "PL Fahrzeug", "Peotec color", "Pollrich-M", "Reitz", "Rotodyne", "S+E", "STROJLAB", "Scheuch", "Schober", "Siempelkamp", "Stela", "TMA", "V.U.M.B.", "VBT", "Venta", "Ventec", "Ventec Köln", "Venti-Oelde", "WHF", "WMB", "Weber + Leist", "Weiss Mawek", "Wünsch", "Ziehl", "intern", "weber&Leist"];
+var STAMM_SACHBEARBEITER=["Bauz (BAU)", "Braun (BRA)", "Can-Aktürk (CAN)", "Fatih (FAT)", "Gerschwitz (GER)", "Hamdi (HAM)", "Jasmin (JAS)", "Marcel (MAR)", "Ralf (RAL)", "Ralph (RPH)", "Uwe (UWE)", "Uwe-Hamdi (UHA)", "Wöhr (WOE)"];
+var STAMM_WERKSTOFFE=["1.0330-s3", "S355MC-s4", "S355MC-s3", "1.0330-s2", "s3-1.0038", "1.8928-s4", "s3-1.0330", "s4-1.0570", "1.0038-s4", "1.0570-s3", "s3-1.0570", "s3-1.4301", "St-52-s4", "1.4301-s3", "1.0330-s2,5", "1.4571-s3", "1.4571-s4", "DC01 s3", "s4-1.8928", "1.0570-s4", "1.4462-s4", "1.8928-s5", "1.8928-s8", "3.3535-s3 alu", "AlMg3-s3", "St-52-s3", "1.8928-s6", "S355MC", "s4-1.0038", "1.0038-s6", "s3-1.0976", "1.0976-s6", "1.4301-s2", "1.4301-s4", "1.4462-s5", "1.4462-s6", "1.4571-s6", "1.4878-s4", "DC01 s3/CU", "s2-1.4301", "s4-1.0976", "s4-1.4571", "s5-1.0038", "s5-1.8928", "s6-1.8928", "s8-1.8928", "UG00000042223-06", "1.0330-s3+Kupfer", "3.3535-s3", "S355MC-3", "S355MC-s5", "S355MC-s6", "s4-St-52", "St-52-s5", "1.0038-s5", "1.0570-s5", "1.8928-s10", "s2-1.0330", "s3-1.4404", "s3-1.4878", "s3-St-52", "s4-1.4301", "s4-1.4462", "s5-1.0570", "S700MC-s4", "St-52-s6", "1.4301-s5", "1.4571-s2,5", "1.4878-s3", "1.8928-s12", "DC01-s3", "Kupfer-s2,5", "s12-1.8928", "s2,5-1.4301", "s3-1.4571", "S355MC-4", "s4-1.4828", "s6-1.0976", "s6-1.4462", "S700MC-s3", "s8-1.4462", "St-52-s8", "st37 -s3", "ST37-s3", "UG00000025529-02", "UG00000045905-04", "UG00000054113-00", "1.0038-s3", "1.0330-3", "1.0330-s4", "1.0976-s4", "1.4301-s2,5", "1.4301-s6", "1.4404-s4", "1.4410 s4", "1.4462-s3", "1.4541-s3", "1.4571-s10", "1.4571-s5", "1.4835-s5", "1.4878-4", "1.4878-s5", "1.4878-s6", "1.4958-s4", "1.8928 s4", "10570", "1446199", "16Mo3-s3", "2.4851-s4", "DC01", "s10-1.8928", "s2,5-1.0330", "s2,5-1.4571", "s3-1.4462", "s3-AlMg3", "s3-Almg3", "S355MC-S3", "s355mc-s3", "S355MC-S4", "S4-1.0976", "s4-1.4878", "s4-S355MC", "S420MC-3", "S420MC-s4", "S420MC-s6", "s5-1.4462", "s5-1.4571", "s5-1.4828", "s6-1.0038", "s6-1.0570", "s6-1.4501", "s6-S355MC", "s6-St-52", "S700MC-s6", "S700MC-s8", "s8-1.0038", "s8-1.0570", "s8-1.0976", "st37 -s2", "ST37-3", "st52 s4", "St52 s5"];
+
+// Pure DOM SearchableSelect — works outside React render cycle
+function attachSearchableSelect(inputEl, items, onSelect) {
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'position:relative;display:inline-block;width:100%';
+  inputEl.parentNode.insertBefore(wrap, inputEl);
+  wrap.appendChild(inputEl);
+
+  var dd = document.createElement('div');
+  dd.style.cssText = 'display:none;position:absolute;top:100%;left:0;right:0;max-height:200px;overflow-y:auto;background:#fff;border:1px solid #ccc;border-top:none;border-radius:0 0 6px 6px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.15)';
+  wrap.appendChild(dd);
+
+  function render(filter) {
+    dd.innerHTML = '';
+    var f = (filter || '').toLowerCase();
+    var matches = items.filter(function(it) { return it.toLowerCase().indexOf(f) !== -1; });
+    if (matches.length === 0) {
+      var empty = document.createElement('div');
+      empty.textContent = 'Kein Treffer';
+      empty.style.cssText = 'padding:8px 10px;font-size:.75rem;color:#999;font-style:italic';
+      dd.appendChild(empty);
+      return;
+    }
+    matches.forEach(function(it) {
+      var row = document.createElement('div');
+      row.textContent = it;
+      row.style.cssText = 'padding:5px 10px;font-size:.78rem;cursor:pointer;border-bottom:1px solid #f0f0f0';
+      row.onmouseenter = function() { row.style.background = '#e8f4fd'; };
+      row.onmouseleave = function() { row.style.background = '#fff'; };
+      row.onmousedown = function(e) {
+        e.preventDefault();
+        inputEl.value = it;
+        dd.style.display = 'none';
+        if (onSelect) onSelect(it);
+        // trigger React onChange
+        var nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        nativeInputValueSetter.call(inputEl, it);
+        inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+      dd.appendChild(row);
+    });
+  }
+
+  inputEl.addEventListener('focus', function() {
+    render(inputEl.value);
+    dd.style.display = 'block';
+  });
+  inputEl.addEventListener('input', function() {
+    render(inputEl.value);
+    dd.style.display = 'block';
+  });
+  inputEl.addEventListener('blur', function() {
+    setTimeout(function() { dd.style.display = 'none'; }, 150);
+  });
+}
+</script>
 <!-- Drückteile App (compiled) -->
 <script>
 "use strict";
@@ -4809,6 +4870,20 @@ body{padding-bottom:56px}
     });
     sessionStorage.setItem('hasi_stueckliste', JSON.stringify(stueckliste));
     hasiNotify('✅ Zur Stückliste hinzugefügt (' + stueckliste.length + ' Positionen)', 'ok');
+    // Show action chooser
+    setTimeout(function(){
+      var html = '<div style="padding:16px;text-align:center">';
+      html += '<p style="margin-bottom:16px;color:var(--tx);font-size:.9rem"><strong>' + stueckliste.length + ' Position(en)</strong> in der Stückliste. Was möchten Sie tun?</p>';
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:400px;margin:0 auto">';
+      html += '<button class="htb" onclick="closeModal();hasiShowList()" style="background:#f0f4f8;color:#1B5E9E;border:1px solid #1B5E9E;padding:12px 8px;border-radius:8px;font-size:.82rem;cursor:pointer">📋 Liste anzeigen</button>';
+      html += '<button class="htb" onclick="closeModal();hasiPrintList()" style="background:#1B5E9E;color:#fff;padding:12px 8px;border-radius:8px;font-size:.82rem;cursor:pointer">🖨 Auftragsblätter drucken</button>';
+      html += '<button class="htb" onclick="closeModal();hasiExportExcel()" style="background:#217346;color:#fff;padding:12px 8px;border-radius:8px;font-size:.82rem;cursor:pointer">📊 Excel Export</button>';
+      html += '<button class="htb" onclick="closeModal();hasiKalkGesamt()" style="background:#E65100;color:#fff;padding:12px 8px;border-radius:8px;font-size:.82rem;cursor:pointer">💰 Gesamtkalkulation</button>';
+      html += '</div>';
+      html += '<div style="margin-top:14px"><button class="htb" onclick="closeModal()" style="background:transparent;color:var(--gray);border:none;font-size:.78rem;cursor:pointer">Später — weiter rechnen</button></div>';
+      html += '</div>';
+      showModal('📋 Stückliste — Was nun?', html);
+    }, 400);
   };
 
   window.hasiShowList = function(){
@@ -4879,6 +4954,43 @@ body{padding-bottom:56px}
     w.document.write(html);
     w.document.close();
     w.print();
+  };
+
+  // ===== EXCEL EXPORT =====
+  window.hasiExportExcel = function(){
+    if(stueckliste.length === 0){ hasiNotify('Stückliste ist leer','warn'); return; }
+    var sep = '\t';
+    var lines = ['Pos'+sep+'Kunde'+sep+'DV-Nr.'+sep+'Typ'+sep+'De (mm)'+sep+'s (mm)'+sep+'Stück'+sep+'Material'+sep+'Datum'];
+    stueckliste.forEach(function(s,i){
+      lines.push((i+1)+sep+(s.kunde||'')+sep+(s.dvNr||'')+sep+(s.typ||'')+sep+(s.De||'')+sep+(s.s||'')+sep+(s.stueck||'')+sep+(s.material||'')+sep+(s.timestamp||''));
+    });
+    var blob = new Blob(['\uFEFF'+lines.join('\n')], {type:'text/tab-separated-values;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'Stueckliste_'+new Date().toISOString().slice(0,10)+'.xls';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    hasiNotify('📊 Excel-Datei heruntergeladen','ok');
+  };
+
+  // ===== GESAMTKALKULATION =====
+  window.hasiKalkGesamt = function(){
+    if(stueckliste.length === 0){ hasiNotify('Stückliste ist leer','warn'); return; }
+    var html = '<div style="padding:12px">';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:.82rem">';
+    html += '<thead><tr style="background:#1B5E9E;color:#fff"><th style="padding:6px 8px;text-align:left">#</th><th style="padding:6px 8px;text-align:left">Kunde</th><th style="padding:6px 8px;text-align:left">De</th><th style="padding:6px 8px;text-align:left">s</th><th style="padding:6px 8px;text-align:right">Stk</th><th style="padding:6px 8px;text-align:left">Material</th></tr></thead><tbody>';
+    stueckliste.forEach(function(s,i){
+      html += '<tr style="border-bottom:1px solid #eee"><td style="padding:5px 8px">'+(i+1)+'</td><td style="padding:5px 8px">'+escH(s.kunde)+'</td><td style="padding:5px 8px">'+escH(s.De)+'</td><td style="padding:5px 8px">'+escH(s.s)+'</td><td style="padding:5px 8px;text-align:right">'+escH(s.stueck)+'</td><td style="padding:5px 8px">'+escH(s.material)+'</td></tr>';
+    });
+    var totalStk = stueckliste.reduce(function(a,s){ return a + (parseInt(s.stueck)||0); }, 0);
+    html += '</tbody></table>';
+    html += '<div style="margin-top:12px;padding:10px;background:#f0f4f8;border-radius:8px;display:flex;justify-content:space-between;align-items:center">';
+    html += '<div><strong>'+stueckliste.length+' Positionen</strong> · Gesamt: <strong>'+totalStk+' Stück</strong></div>';
+    html += '<div style="display:flex;gap:8px">';
+    html += '<button class="htb" onclick="closeModal();hasiPrintList()" style="background:#1B5E9E;color:#fff;padding:6px 12px;border-radius:6px;font-size:.78rem;cursor:pointer">🖨 Drucken</button>';
+    html += '<button class="htb" onclick="closeModal();hasiExportExcel()" style="background:#217346;color:#fff;padding:6px 12px;border-radius:6px;font-size:.78rem;cursor:pointer">📊 Excel</button>';
+    html += '</div></div></div>';
+    showModal('💰 Gesamtkalkulation — '+stueckliste.length+' Positionen', html);
   };
 
   // ===== 4. VALIDIERUNG =====
@@ -4969,6 +5081,84 @@ body{padding-bottom:56px}
     if(el) el.textContent = saved.length > 0 ? saved.length + ' Aufträge gespeichert' : '';
   }
   updateStatus();
+})();
+</script>
+
+<!-- Attach Stammdaten dropdowns after React render -->
+<script>
+(function initStammdaten() {
+  function tryAttach() {
+    // Find inputs by placeholder text
+    var inputs = document.querySelectorAll('input');
+    var kundeInput = null, sachbInput = null, werkstoffInput = null;
+    inputs.forEach(function(inp) {
+      var ph = (inp.placeholder || '').toLowerCase();
+      var val = (inp.value || '').toLowerCase();
+      if (ph === 'kundenname' || ph.indexOf('kunde') !== -1) kundeInput = inp;
+    });
+    // Find Sachbearbeiter — it's in Kundeninformation card, after AB Liefertermin row
+    // Find by traversing info-lbl spans
+    var lbls = document.querySelectorAll('.info-lbl');
+    lbls.forEach(function(lbl) {
+      var txt = (lbl.textContent || '').trim();
+      if (txt === 'Sachbearb.' && lbl.nextElementSibling) {
+        var inp = lbl.nextElementSibling.querySelector('input');
+        if (inp) sachbInput = inp;
+      }
+    });
+
+    if (kundeInput && !kundeInput._stamm) {
+      kundeInput._stamm = true;
+      attachSearchableSelect(kundeInput, STAMM_KUNDEN);
+    }
+    if (sachbInput && !sachbInput._stamm) {
+      sachbInput._stamm = true;
+      attachSearchableSelect(sachbInput, STAMM_SACHBEARBEITER);
+    }
+
+    // Werkstoff (DB) — find the werkstoff text input (not select)
+    lbls.forEach(function(lbl) {
+      var txt = (lbl.textContent || '').trim();
+      if (txt === 'Werkstoff' && lbl.nextElementSibling) {
+        var sel = lbl.nextElementSibling.querySelector('select');
+        // We want to add a searchable text input ABOVE the existing select
+        if (sel && !sel._stamm) {
+          sel._stamm = true;
+          var container = sel.closest('.info-row');
+          if (container) {
+            var newRow = document.createElement('div');
+            newRow.className = 'info-row';
+            newRow.style.cssText = 'grid-column:1/-1;margin-bottom:4px';
+            newRow.innerHTML = '<span class="info-lbl" style="color:var(--blue);font-weight:700">Werkstoff (DB)</span><span class="info-val"><input placeholder="z.B. 1.4301-s3..." style="font-weight:600;color:var(--blue)"></span>';
+            var card = container.closest('.info-card-body');
+            var grid = card ? card.querySelector('div[style]') : null;
+            if (grid) {
+              grid.insertBefore(newRow, grid.firstChild);
+              var wInput = newRow.querySelector('input');
+              attachSearchableSelect(wInput, STAMM_WERKSTOFFE, function(val) {
+                // Also update the existing werkstoff select/input via React
+                var nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+                // Find the werkstoff text input if there is one, or dispatch on select
+                // For now just set the display
+              });
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Wait for React to render, then attach
+  if (document.readyState === 'complete') {
+    setTimeout(tryAttach, 500);
+  } else {
+    window.addEventListener('load', function() { setTimeout(tryAttach, 500); });
+  }
+  // Re-attach on tab changes (React re-renders)
+  var observer = new MutationObserver(function() {
+    setTimeout(tryAttach, 200);
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
 })();
 </script>
 
