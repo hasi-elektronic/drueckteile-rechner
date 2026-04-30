@@ -4934,8 +4934,28 @@ body{padding-bottom:56px}
 })();
 </script>
 
-<!-- Attach Stammdaten dropdowns after React render -->
+<!-- Attach Stammdaten dropdowns + Enter-to-next after React render -->
 <script>
+// Enter key → jump to next input
+(function initEnterNav() {
+  document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter') return;
+    var el = e.target;
+    if (el.tagName !== 'INPUT' && el.tagName !== 'SELECT') return;
+    e.preventDefault();
+    // Collect all visible inputs/selects
+    var all = Array.from(document.querySelectorAll('input:not([type=hidden]),select'));
+    all = all.filter(function(inp) { return inp.offsetParent !== null && !inp.disabled; });
+    var idx = all.indexOf(el);
+    if (idx >= 0 && idx < all.length - 1) {
+      all[idx + 1].focus();
+      if (all[idx + 1].type === 'number' || all[idx + 1].type === 'text') {
+        all[idx + 1].select();
+      }
+    }
+  });
+})();
+
 (function initStammdaten() {
   function tryAttach() {
     // Find inputs by placeholder text
