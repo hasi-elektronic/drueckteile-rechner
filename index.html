@@ -460,46 +460,6 @@ null})}),!0):!1};M.unstable_batchedUpdates=ai;M.unstable_createPortal=function(a
 })();
 
 </script>
-<!-- STAMMDATEN Sickinger DB Export 30.04.2026 -->
-<script>
-var STAMM_KUNDEN=["Actiro", "B-Luft", "B-Luft-D", "Berliner Luft Deutschland", "Bühler", "CFT", "DUV", "EVG", "Ehehalt", "Elektror", "Elektror Polen", "FIMA", "Frankenberger", "Frankenberger Ing.-Büro", "Gebhardt", "Gebr. Schmidt", "HLU", "HPF", "Howden", "Joh Müller Kunststoff", "Kamptmann", "Karl Klein", "Karl Klein Peter", "Karl KleinPeter", "Klingel", "Konz", "Konz-Lufttechnik", "Kovodruzstvo", "Kreisel", "LTG", "LWN", "Lung", "MAZ", "MVB", "Mauser", "Meierling", "Milde", "NETECS", "PL Fahrzeug", "Peotec color", "Pollrich-M", "Reitz", "Rotodyne", "S+E", "STROJLAB", "Scheuch", "Schober", "Siempelkamp", "Stela", "TMA", "V.U.M.B.", "VBT", "Venta", "Ventec", "Ventec Köln", "Venti-Oelde", "WHF", "WMB", "Weber + Leist", "Weiss Mawek", "Wünsch", "Ziehl", "intern", "weber&Leist"];
-var STAMM_SACHBEARBEITER=["Bauz (BAU)", "Braun (BRA)", "Can-Aktürk (CAN)", "Fatih (FAT)", "Gerschwitz (GER)", "Hamdi (HAM)", "Jasmin (JAS)", "Marcel (MAR)", "Ralf (RAL)", "Ralph (RPH)", "Uwe (UWE)", "Uwe-Hamdi (UHA)", "Wöhr (WOE)"];
-var STAMM_WERKSTOFFE=["1.0330-s3", "S355MC-s4", "S355MC-s3", "1.0330-s2", "s3-1.0038", "1.8928-s4", "s3-1.0330", "s4-1.0570", "1.0038-s4", "1.0570-s3", "s3-1.0570", "s3-1.4301", "St-52-s4", "1.4301-s3", "1.0330-s2,5", "1.4571-s3", "1.4571-s4", "DC01 s3", "s4-1.8928", "1.0570-s4", "1.4462-s4", "1.8928-s5", "1.8928-s8", "3.3535-s3 alu", "AlMg3-s3", "St-52-s3", "1.8928-s6", "S355MC", "s4-1.0038", "1.0038-s6", "s3-1.0976", "1.0976-s6", "1.4301-s2", "1.4301-s4", "1.4462-s5", "1.4462-s6", "1.4571-s6", "1.4878-s4", "DC01 s3/CU", "s2-1.4301", "s4-1.0976", "s4-1.4571", "s5-1.0038", "s5-1.8928", "s6-1.8928", "s8-1.8928", "UG00000042223-06", "1.0330-s3+Kupfer", "3.3535-s3", "S355MC-3", "S355MC-s5", "S355MC-s6", "s4-St-52", "St-52-s5", "1.0038-s5", "1.0570-s5", "1.8928-s10", "s2-1.0330", "s3-1.4404", "s3-1.4878", "s3-St-52", "s4-1.4301", "s4-1.4462", "s5-1.0570", "S700MC-s4", "St-52-s6", "1.4301-s5", "1.4571-s2,5", "1.4878-s3", "1.8928-s12", "DC01-s3", "Kupfer-s2,5", "s12-1.8928", "s2,5-1.4301", "s3-1.4571", "S355MC-4", "s4-1.4828", "s6-1.0976", "s6-1.4462", "S700MC-s3", "s8-1.4462", "St-52-s8", "st37 -s3", "ST37-s3", "UG00000025529-02", "UG00000045905-04", "UG00000054113-00", "1.0038-s3", "1.0330-3", "1.0330-s4", "1.0976-s4", "1.4301-s2,5", "1.4301-s6", "1.4404-s4", "1.4410 s4", "1.4462-s3", "1.4541-s3", "1.4571-s10", "1.4571-s5", "1.4835-s5", "1.4878-4", "1.4878-s5", "1.4878-s6", "1.4958-s4", "1.8928 s4", "10570", "1446199", "16Mo3-s3", "2.4851-s4", "DC01", "s10-1.8928", "s2,5-1.0330", "s2,5-1.4571", "s3-1.4462", "s3-AlMg3", "s3-Almg3", "S355MC-S3", "s355mc-s3", "S355MC-S4", "S4-1.0976", "s4-1.4878", "s4-S355MC", "S420MC-3", "S420MC-s4", "S420MC-s6", "s5-1.4462", "s5-1.4571", "s5-1.4828", "s6-1.0038", "s6-1.0570", "s6-1.4501", "s6-S355MC", "s6-St-52", "S700MC-s6", "S700MC-s8", "s8-1.0038", "s8-1.0570", "s8-1.0976", "st37 -s2", "ST37-3", "st52 s4", "St52 s5"];
-</script>
-<!-- SearchableSelect Component -->
-<script>
-function SearchableSelect(props){
-  var items=props.items,value=props.value,onChange=props.onChange,placeholder=props.placeholder||'Suchen...',width=props.width||'100%';
-  var _React=React,useState=_React.useState,useRef=_React.useRef,useEffect=_React.useEffect;
-  var _s=useState(false),open=_s[0],setOpen=_s[1];
-  var _s2=useState(''),search=_s2[0],setSearch=_s2[1];
-  var ref=useRef(null);
-  useEffect(function(){
-    function h(e){ref.current&&!ref.current.contains(e.target)&&setOpen(false);}
-    document.addEventListener('mousedown',h);return function(){document.removeEventListener('mousedown',h);};
-  },[]);
-  var filtered=items.filter(function(it){return it.toLowerCase().indexOf(search.toLowerCase())!==-1;});
-  return React.createElement('div',{ref:ref,style:{position:'relative',display:'inline-block',width:width}},
-    React.createElement('input',{
-      value:open?search:value,
-      onChange:function(e){setSearch(e.target.value);if(!open)setOpen(true);},
-      onFocus:function(){setOpen(true);setSearch('');},
-      placeholder:value||placeholder,
-      style:{width:'100%',padding:'3px 6px',border:'1px solid var(--border)',borderRadius:4,fontSize:'.8rem',fontFamily:'inherit',fontWeight:value?600:400,color:value?'var(--blue)':'var(--gray)',background:open?'#fff':'transparent'}
-    }),
-    open&&React.createElement('div',{style:{position:'absolute',top:'100%',left:0,right:0,maxHeight:200,overflowY:'auto',background:'#fff',border:'1px solid var(--border)',borderTop:'none',borderRadius:'0 0 6px 6px',zIndex:999,boxShadow:'0 4px 12px rgba(0,0,0,.12)'}},
-      filtered.length===0?React.createElement('div',{style:{padding:'8px 10px',fontSize:'.75rem',color:'var(--gray)',fontStyle:'italic'}},'Kein Treffer'):
-      filtered.map(function(it){
-        return React.createElement('div',{
-          key:it,
-          onClick:function(){onChange(it);setOpen(false);setSearch('');},
-          style:{padding:'5px 10px',fontSize:'.78rem',cursor:'pointer',background:it===value?'var(--blue-bg)':'transparent',fontWeight:it===value?700:400,color:it===value?'var(--blue)':'var(--tx)',borderBottom:'1px solid #f0f0f0'}
-        },it);
-      })
-    )
-  );
-}
-</script>
 <!-- Drückteile App (compiled) -->
 <script>
 "use strict";
@@ -2641,12 +2601,15 @@ function App() {
     className: "info-lbl"
   }, "Kunde"), /*#__PURE__*/React.createElement("span", {
     className: "info-val"
-  }, /*#__PURE__*/React.createElement(SearchableSelect, {
-    items: STAMM_KUNDEN,
+  }, /*#__PURE__*/React.createElement("input", {
     value: kunde,
-    onChange: function(v){ setKunde(v); },
-    placeholder: "Kunde suchen...",
-    width: "100%"
+    onChange: function onChange(e) {
+      return setKunde(e.target.value);
+    },
+    placeholder: "Kundenname",
+    style: {
+      fontWeight: 600
+    }
   }))), /*#__PURE__*/React.createElement("div", {
     className: "info-row"
   }, /*#__PURE__*/React.createElement("span", {
@@ -2709,13 +2672,12 @@ function App() {
     className: "info-lbl"
   }, "Sachbearb."), /*#__PURE__*/React.createElement("span", {
     className: "info-val"
-  }, /*#__PURE__*/React.createElement(SearchableSelect, {
-    items: STAMM_SACHBEARBEITER,
+  }, /*#__PURE__*/React.createElement("input", {
     value: sachbearbeiter,
-    onChange: function(v){ setSachbearbeiter(v); },
-    placeholder: "Sachbearbeiter...",
-    width: "100%"
-  })))), /*#__PURE__*/React.createElement("div", {
+    onChange: function onChange(e) {
+      return setSachbearbeiter(e.target.value);
+    }
+  }))), /*#__PURE__*/React.createElement("div", {
     className: "info-row",
     style: {
       gridColumn: '1/-1',
@@ -2814,19 +2776,6 @@ function App() {
       gap: '4px 12px'
     }
   }, /*#__PURE__*/React.createElement("div", {
-    className: "info-row",
-    style: {gridColumn:'1/-1'}
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "info-lbl"
-  }, "Werkstoff (DB)"), /*#__PURE__*/React.createElement("span", {
-    className: "info-val"
-  }, /*#__PURE__*/React.createElement(SearchableSelect, {
-    items: STAMM_WERKSTOFFE,
-    value: werkstoff,
-    onChange: function(v){ setWerkstoff(v); },
-    placeholder: "Werkstoff suchen (z.B. 1.4301-s3)...",
-    width: "100%"
-  }))), /*#__PURE__*/React.createElement("div", {
     className: "info-row"
   }, /*#__PURE__*/React.createElement("span", {
     className: "info-lbl"
