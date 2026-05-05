@@ -795,6 +795,21 @@ function App() {
     _useState20 = _slicedToArray(_useState19, 2),
     Ronde = _useState20[0],
     setRonde = _useState20[1];
+  var _useStateRD1 = useState(String(Ronde)),
+    _useStateRD2 = _slicedToArray(_useStateRD1, 2),
+    rondeDisplay = _useStateRD2[0],
+    setRondeDisplay = _useStateRD2[1];
+  var handleRondeChange = function handleRondeChange(e) {
+    var raw = e.target.value;
+    setRondeDisplay(raw);
+    var num = parseFloat(raw);
+    if (!isNaN(num) && num > 0) {
+      setRonde(num);
+    }
+  };
+  var handleRondeBlur = function handleRondeBlur() {
+    if (Ronde > 0) setRondeDisplay(String(Ronde));
+  };
   var _useState21 = useState(90),
     _useState22 = _slicedToArray(_useState21, 2),
     ai = _useState22[0],
@@ -2376,10 +2391,9 @@ function App() {
     className: "ab-cell val-blue"
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
-    value: Ronde,
-    onChange: function onChange(e) {
-      return setRonde(+e.target.value || 0);
-    },
+    value: rondeDisplay,
+    onChange: handleRondeChange,
+    onBlur: handleRondeBlur,
     step: "1",
     style: {
       fontWeight: 700,
