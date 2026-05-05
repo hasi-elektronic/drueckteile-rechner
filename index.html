@@ -1133,12 +1133,13 @@ function App() {
     var Ro_Drad = De + 2 * R;
     var Di = Ro_Drad - 4 * R * 3.14 * ai / 360 * (1 - 0.0477) - 2 * Ueberstand;
     var H = R * (1 - Math.sin((90 - ai) * Math.PI / 180)) + Ueberstand;
-    var Ro_Drad_half = (Ronde - Ro_Drad) / 2;
+    var safeRonde = Ronde > Ro_Drad ? Ronde : Ro_Drad + 50;
+    var Ro_Drad_half = (safeRonde - Ro_Drad) / 2;
     var stdKopf = kopfType === "klein" ? 230 : 300;
     var Kopfdaten = stdKopf + korrekturfaktor;
     var Eintauch = Di - 80;
     var Erst_Drueck = Di + Kopfdaten;
-    var areaOuter = Math.PI * Math.pow(Ronde / 20, 2);
+    var areaOuter = Math.PI * Math.pow(safeRonde / 20, 2);
     var areaInner = Math.PI * Math.pow(Di / 20, 2);
     var ringArea = areaOuter - areaInner;
     var volume = ringArea * (s / 10);
@@ -1146,7 +1147,7 @@ function App() {
     var weightTotal = weightSingle * stueck;
 
     // Tafelgewicht: kare plaka (Ronde×Ronde) — Verschnitt dahil
-    var tafelVolume = Math.pow(Ronde / 10, 2) * (s / 10); // cm³
+    var tafelVolume = Math.pow(safeRonde / 10, 2) * (s / 10); // cm³
     var tafelWeight = tafelVolume * matDensity / 1000; // kg
     var tafelWeightTotal = tafelWeight * stueck;
     var pal = PALETTEN[paletteIdx];
@@ -1154,6 +1155,7 @@ function App() {
     var surfaceM2 = Math.PI * (De / 1000) * (H / 1000);
     return {
       Ro_Drad: Ro_Drad,
+      safeRonde: safeRonde,
       Di: Math.round(Di * 100) / 100,
       H: Math.round(H * 100) / 100,
       Ro_Drad_half: Math.round(Ro_Drad_half * 10) / 10,
@@ -1214,7 +1216,7 @@ function App() {
     var sH = Math.max(0, calc.H - R);
     var outerR = De / 2;
     var totalPartH = sH + R + s;
-    var totalPartW = Ronde / 2;
+    var totalPartW = Math.max(Ronde, calc.Ro_Drad + 10) / 2;
 
     // Dynamic height: drawing area + dimensions + title block
     var titleBlockH = 72;
@@ -1229,7 +1231,7 @@ function App() {
     var sS = s * sc;
     var rS = R * sc;
     var sHS = sH * sc;
-    var flangeR = Ronde / 2 * sc;
+    var flangeR = Math.max(Ronde, calc.Ro_Drad + 10) / 2 * sc;
     var arcJoinX = (outerR + R) * sc;
     var blue = '#1B5E9E',
       blueL = '#2979C9',
@@ -1646,8 +1648,9 @@ function App() {
       cx = svgW / 2,
       cy = (svgH - 72) / 2;
     var drawArea = svgH - 72; // same titleBlockH as cross section
-    var maxR = Ronde / 2;
-    var scale = Math.min((svgW - 60) / Ronde, (drawArea - 60) / Ronde);
+    var safeR_ = Math.max(Ronde, calc.Ro_Drad + 10);
+    var maxR = safeR_ / 2;
+    var scale = Math.min((svgW - 60) / safeR_, (drawArea - 60) / safeR_);
     var rR = maxR * scale,
       rDi = calc.Di / 2 * scale,
       rDe = De / 2 * scale,
@@ -2191,7 +2194,7 @@ function App() {
         sS_ = s * sc_,
         rS_ = R * sc_,
         sHS_ = sH_ * sc_;
-      var flangeR_ = Ronde / 2 * sc_,
+      var flangeR_ = Math.max(Ronde, calc.Ro_Drad + 10) / 2 * sc_,
         arcJX_ = (outerR_ + R) * sc_;
       var tY_ = 24,
         sE_ = tY_ + sHS_,
@@ -2205,8 +2208,9 @@ function App() {
         tvH_ = 320,
         tcx_ = tvW_ / 2,
         tcy_ = tvH_ / 2;
-      var tsc_ = Math.min((tvW_ - 50) / Ronde, (tvH_ - 50) / Ronde);
-      var trR_ = Ronde / 2 * tsc_,
+      var safeR2_ = Math.max(Ronde, calc.Ro_Drad + 10);
+      var tsc_ = Math.min((tvW_ - 50) / safeR2_, (tvH_ - 50) / safeR2_);
+      var trR_ = safeR2_ / 2 * tsc_,
         trDi_ = calc.Di / 2 * tsc_,
         trDe_ = De / 2 * tsc_,
         trRD_ = calc.Ro_Drad / 2 * tsc_;
