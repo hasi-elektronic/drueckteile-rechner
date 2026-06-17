@@ -1126,6 +1126,14 @@ function App() {
     _useState142 = _slicedToArray(_useState141, 2),
     stepMsg = _useState142[0],
     setStepMsg = _useState142[1];
+  var _useStateKL1 = useState(false),
+    _useStateKL2 = _slicedToArray(_useStateKL1, 2),
+    kalkLoading = _useStateKL2[0],
+    setKalkLoading = _useStateKL2[1];
+  var _useStateKL3 = useState(''),
+    _useStateKL4 = _slicedToArray(_useStateKL3, 2),
+    kalkMsg = _useStateKL4[0],
+    setKalkMsg = _useStateKL4[1];
   var matDensity = (WERKSTOFFE[matGruppe] || WERKSTOFFE['Stahl']).density;
 
   // === SICKINGER FORMULAS (exact from Excel) ===
@@ -2042,6 +2050,77 @@ function App() {
     a.click();
     URL.revokeObjectURL(url);
   }, [Ronde, De, R, calc, hasLK, lkD, lkHoles, lkHoleD]);
+
+  // === An Sickinger Kalkulationssystem senden ===
+  var sendToKalkulation = useCallback(function () {
+    setKalkLoading(true);
+    setKalkMsg('');
+    try {
+      // DXF (Draufsicht) als String erzeugen — gleiche Logik wie exportDXF
+      var dxf = "0\nSECTION\n2\nHEADER\n0\nENDSEC\n0\nSECTION\n2\nTABLES\n0\nENDSEC\n0\nSECTION\n2\nBLOCKS\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n";
+      dxf += "0\nCIRCLE\n8\n0\n10\n0\n20\n0\n30\n0\n40\n".concat(Ronde / 2, "\n");
+      dxf += "0\nCIRCLE\n8\n0\n10\n0\n20\n0\n30\n0\n40\n".concat(calc.Di / 2, "\n");
+      if (hasLK && lkHoles > 0) {
+        for (var i = 0; i < lkHoles; i++) {
+          var _a = 2 * Math.PI * i / lkHoles;
+          var hx = lkD / 2 * Math.cos(_a),
+            hy = lkD / 2 * Math.sin(_a);
+          dxf += "0\nCIRCLE\n8\n0\n10\n".concat(hx.toFixed(3), "\n20\n").concat(hy.toFixed(3), "\n30\n0\n40\n").concat(lkHoleD / 2, "\n");
+        }
+      }
+      dxf += "0\nENDSEC\n0\nEOF\n";
+      // Base64-kodierung (UTF-8 sicher)
+      var dxfB64 = btoa(unescape(encodeURIComponent(dxf)));
+      var dxfNameParts = [Ronde, De, R, Math.round(calc.H)];
+      if (hasLK) dxfNameParts.push("LK");
+      var dxfName = dxfNameParts.join("-") + ".dxf";
+      // Titel automatisch aus den Kerndaten
+      var autoTitle = "Drückteil Ø" + Ronde + " / De" + De + " / R" + R + " / H" + Math.round(calc.H);
+      // POST-Body für Sickinger Kalkulationssystem
+      var body = {
+        token: "cad_883064945860458e135defe1dd4c042976e5",
+        calc_type: "drueckteile",
+        title: autoTitle,
+        customer_name: kunde || "",
+        drawing_no: dvNummer || "",
+        batchQty: stueck || 1,
+        positions: [{
+          label: "Ronde",
+          material: werkstoff,
+          shape: "rund",
+          width: Ronde,
+          height: 0,
+          thickness: s,
+          qty: stueck || 1,
+          pricePerKg: matPreisKg
+        }],
+        dxf: dxfB64,
+        dxfName: dxfName
+      };
+      fetch("https://sickinger-kalkulationssystem.pages.dev/api/import/cad", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      }).then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      }).then(function (data) {
+        setKalkLoading(false);
+        if (data && data.url) {
+          setKalkMsg("✓ Erfolgreich gesendet! Kalkulation #" + data.id + " wird geöffnet…");
+          window.open(data.url, "_blank");
+        } else {
+          setKalkMsg("✗ Unerwartete Antwort vom Server.");
+        }
+      })["catch"](function (e) {
+        setKalkLoading(false);
+        setKalkMsg("✗ Fehler: " + e.message);
+      });
+    } catch (e) {
+      setKalkLoading(false);
+      setKalkMsg("✗ Fehler: " + e.message);
+    }
+  }, [Ronde, De, R, s, calc, hasLK, lkD, lkHoles, lkHoleD, werkstoff, kunde, dvNummer, stueck, matPreisKg]);
 
   // Python command copy
   var exportPython = useCallback(function () {
@@ -4093,7 +4172,50 @@ function App() {
       fontWeight: 700,
       fontSize: '1.4rem'
     }
-  }, costs.stk.toFixed(2), " \u20AC"))), subTab === "export" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, costs.stk.toFixed(2), " \u20AC")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 16,
+      paddingTop: 16,
+      borderTop: '1px solid var(--gray-xl)'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: sendToKalkulation,
+    disabled: kalkLoading,
+    style: {
+      width: '100%',
+      padding: '14px 20px',
+      background: kalkLoading ? 'var(--gray-l)' : 'var(--blue)',
+      color: '#fff',
+      border: 'none',
+      borderRadius: 8,
+      fontWeight: 700,
+      fontSize: '1.05rem',
+      cursor: kalkLoading ? 'wait' : 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      transition: 'background .15s'
+    }
+  }, kalkLoading ? "Wird gesendet…" : "\u2197 An Sickinger Kalkulation senden"), kalkMsg && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10,
+      padding: '10px 14px',
+      borderRadius: 6,
+      fontSize: '.9rem',
+      fontWeight: 600,
+      textAlign: 'center',
+      background: kalkMsg.indexOf('\u2713') === 0 ? 'rgba(34,139,34,0.1)' : 'rgba(200,40,40,0.1)',
+      color: kalkMsg.indexOf('\u2713') === 0 ? '#1a7a1a' : '#c02828'
+    }
+  }, kalkMsg), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 8,
+      fontSize: '.78rem',
+      color: 'var(--mu)',
+      textAlign: 'center'
+    }
+  }, "\u00DCbertr\u00E4gt Ronde \u00D8", Ronde, ", ", werkstoff, ", s=", s, "mm, St\u00FCck ", stueck || 1, " inkl. DXF automatisch"))), subTab === "export" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "grid"
   }, /*#__PURE__*/React.createElement("div", {
     className: "card"
