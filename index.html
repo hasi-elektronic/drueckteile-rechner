@@ -2097,6 +2097,7 @@ function App() {
         dxf: dxfB64,
         dxfName: dxfName
       };
+      var _popup = window.open("", "_blank");
       fetch("https://sickinger-kalkulationssystem.pages.dev/api/import/cad", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -2108,13 +2109,15 @@ function App() {
         setKalkLoading(false);
         if (data && data.url) {
           setKalkMsg("✓ Erfolgreich gesendet! Kalkulation #" + data.id + " wird geöffnet…");
-          window.open(data.url, "_blank");
+          if (_popup) { _popup.location.href = data.url; } else { window.open(data.url, "_blank"); }
         } else {
           setKalkMsg("✗ Unerwartete Antwort vom Server.");
+          if (_popup) _popup.close();
         }
       })["catch"](function (e) {
         setKalkLoading(false);
         setKalkMsg("✗ Fehler: " + e.message);
+        if (_popup) _popup.close();
       });
     } catch (e) {
       setKalkLoading(false);
