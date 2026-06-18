@@ -2077,10 +2077,10 @@ function App() {
       // Titel automatisch aus den Kerndaten
       var autoTitle = "Drückteil Ø" + Ronde + " / De" + De + " / R" + R + " / H" + Math.round(calc.H);
       // POST-Body für Sickinger Kalkulationssystem
-      // Fertigungszeiten (works) - sadece dakikası > 0 olanlar
+      // Fertigungszeiten (works) - tüm Drückerei arbeitsgangları
       var worksArr = machineRates.map(function(m, i) {
         return { label: m.name, rate: m.rate, prodMin: workTimes[i] || 0, qty: 1 };
-      }).filter(function(w) { return w.prodMin > 0; });
+      });
       var body = {
         token: "cad_883064945860458e135defe1dd4c042976e5",
         calc_type: "drueckteile",
