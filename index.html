@@ -2077,13 +2077,20 @@ function App() {
       // Titel automatisch aus den Kerndaten
       var autoTitle = "Drückteil Ø" + Ronde + " / De" + De + " / R" + R + " / H" + Math.round(calc.H);
       // POST-Body für Sickinger Kalkulationssystem
+      // Fertigungszeiten (works) - sadece dakikası > 0 olanlar
+      var worksArr = machineRates.map(function(m, i) {
+        return { label: m.name, rate: m.rate, prodMin: workTimes[i] || 0, qty: 1 };
+      }).filter(function(w) { return w.prodMin > 0; });
       var body = {
         token: "cad_883064945860458e135defe1dd4c042976e5",
         calc_type: "drueckteile",
         title: autoTitle,
         customer_name: kunde || "",
         drawing_no: dvNummer || "",
+        sachbearbeiter: sachbearbeiter || "",
         batchQty: stueck || 1,
+        materialSurcharge: matZuschlag || 0.2,
+        profitRate: gewinnZuschlag || 0.3,
         positions: [{
           label: "Ronde",
           material: werkstoff,
@@ -2094,11 +2101,12 @@ function App() {
           qty: stueck || 1,
           pricePerKg: matPreisKg
         }],
+        works: worksArr,
         dxf: dxfB64,
         dxfName: dxfName
       };
       var _popup = window.open("", "_blank");
-      fetch("https://sickinger-kalkulationssystem.pages.dev/api/import/cad", {
+      fetch("https://sickinger-kalkulation.hguencavdi.workers.dev/api/import/cad", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
@@ -2123,7 +2131,7 @@ function App() {
       setKalkLoading(false);
       setKalkMsg("✗ Fehler: " + e.message);
     }
-  }, [Ronde, De, R, s, calc, hasLK, lkD, lkHoles, lkHoleD, werkstoff, kunde, dvNummer, stueck, matPreisKg]);
+  }, [Ronde, De, R, s, calc, hasLK, lkD, lkHoles, lkHoleD, werkstoff, kunde, dvNummer, stueck, matPreisKg, machineRates, workTimes, matZuschlag, gewinnZuschlag, sachbearbeiter]);
 
   // Python command copy
   var exportPython = useCallback(function () {
@@ -2328,9 +2336,6 @@ function App() {
   var SUB_TABS = [{
     id: "auftragsblatt",
     label: "Auftragsblatt"
-  }, {
-    id: "kalkulation",
-    label: "Kalkulation"
   }, {
     id: "export",
     label: "Export"
@@ -3689,536 +3694,7 @@ function App() {
     style: {
       marginTop: 10
     }
-  }, "Ro-Drad = De + 2\xD7R = ", De, " + ", 2 * R, " = ", /*#__PURE__*/React.createElement("strong", null, calc.Ro_Drad), /*#__PURE__*/React.createElement("br", null), "Di = Ro_Drad \u2212 4\xD7R\xD73.14\xD7\u03B1i/360\xD7(1\u22120.0477) \u2212 2\xD7\xDCberstand", /*#__PURE__*/React.createElement("br", null), "\xA0\xA0= ", calc.Ro_Drad, " \u2212 ", (4 * R * 3.14 * ai / 360 * (1 - 0.0477)).toFixed(2), " \u2212 ", 2 * Ueberstand, " = ", /*#__PURE__*/React.createElement("strong", null, calc.Di), /*#__PURE__*/React.createElement("br", null), "H = R\xD7(1\u2212sin(90\xB0\u2212\u03B1i)) + \xDCberstand", /*#__PURE__*/React.createElement("br", null), "\xA0\xA0= ", R, "\xD7", (1 - Math.sin((90 - ai) * Math.PI / 180)).toFixed(4), " + ", Ueberstand, " = ", /*#__PURE__*/React.createElement("strong", null, calc.H))))), subTab === "kalkulation" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-    className: "grid"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      marginBottom: 16
-    }
-  }, /*#__PURE__*/React.createElement("h3", null, "Gewichtsrechner"), /*#__PURE__*/React.createElement("div", {
-    className: "ib"
-  }, "Ronde: \xD8", Ronde, " au\xDFen / \xD8", calc.Di, " innen | ", matGruppe, " \u2014 ", werkstoff, " (", matDensity, " g/cm\xB3) | s=", s, "mm"), /*#__PURE__*/React.createElement("div", {
-    className: "rg"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "ri hl"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "lb"
-  }, "Gewicht Einzeln"), /*#__PURE__*/React.createElement("div", {
-    className: "vl"
-  }, calc.weightSingle, " ", /*#__PURE__*/React.createElement("span", {
-    className: "un"
-  }, "kg"))), /*#__PURE__*/React.createElement("div", {
-    className: "ri hl"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "lb"
-  }, stueck, "\xD7 Gesamt"), /*#__PURE__*/React.createElement("div", {
-    className: "vl"
-  }, calc.weightTotal, " ", /*#__PURE__*/React.createElement("span", {
-    className: "un"
-  }, "kg")))), /*#__PURE__*/React.createElement("div", {
-    className: "fr",
-    style: {
-      marginTop: 14
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "fg"
-  }, /*#__PURE__*/React.createElement("label", null, "Palette"), /*#__PURE__*/React.createElement("select", {
-    value: paletteIdx,
-    onChange: function onChange(e) {
-      return setPaletteIdx(+e.target.value);
-    }
-  }, PALETTEN.map(function (p, i) {
-    return /*#__PURE__*/React.createElement("option", {
-      key: i,
-      value: i
-    }, p.name, " (", p.weight, "kg / ", p.price, "\u20AC)");
-  })))), /*#__PURE__*/React.createElement("div", {
-    className: "ri ok full",
-    style: {
-      marginTop: 8
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "lb"
-  }, "Mit Palette"), /*#__PURE__*/React.createElement("div", {
-    className: "vl"
-  }, calc.weightWithPal, " ", /*#__PURE__*/React.createElement("span", {
-    className: "un"
-  }, "kg")))), /*#__PURE__*/React.createElement("div", {
-    className: "card"
-  }, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center'
-    }
-  }, "Materialkosten", /*#__PURE__*/React.createElement("button", {
-    onClick: function onClick() {
-      return setShowPriceEditor(!showPriceEditor);
-    },
-    style: {
-      fontSize: '.72rem',
-      padding: '3px 10px',
-      borderRadius: 4,
-      border: '1px solid var(--border)',
-      background: showPriceEditor ? 'var(--blue)' : 'var(--bg)',
-      color: showPriceEditor ? '#fff' : 'var(--mu)',
-      cursor: 'pointer',
-      fontFamily: 'inherit'
-    }
-  }, "\u2699 Materialpreise")), showPriceEditor && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginBottom: 14,
-      padding: 12,
-      background: 'var(--bg)',
-      borderRadius: 8,
-      border: '1px solid var(--border)',
-      maxHeight: 320,
-      overflowY: 'auto'
-    }
-  }, Object.entries(matPrices).map(function (_ref4) {
-    var _ref5 = _slicedToArray(_ref4, 2),
-      grp = _ref5[0],
-      items = _ref5[1];
-    return /*#__PURE__*/React.createElement("div", {
-      key: grp,
-      style: {
-        marginBottom: 10
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: '.72rem',
-        color: 'var(--mu)',
-        fontWeight: 700,
-        marginBottom: 4,
-        textTransform: 'uppercase',
-        letterSpacing: '.3px'
-      }
-    }, grp, " (", WERKSTOFFE[grp].density, " g/cm\xB3)"), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '4px 12px'
-      }
-    }, items.map(function (m, i) {
-      return /*#__PURE__*/React.createElement("div", {
-        key: i,
-        style: {
-          display: 'flex',
-          alignItems: 'center',
-          gap: 4
-        }
-      }, /*#__PURE__*/React.createElement("span", {
-        style: {
-          flex: 1,
-          fontSize: '.75rem',
-          color: 'var(--tx)'
-        }
-      }, m.name), /*#__PURE__*/React.createElement("input", {
-        type: "number",
-        value: m.price,
-        onChange: function onChange(e) {
-          var v = parseFloat(e.target.value) || 0;
-          updateMatPrice(grp, i, v);
-          if (matGruppe === grp && werkstoff === m.name) setMatPreisKg(v);
-        },
-        step: "0.01",
-        min: "0",
-        style: {
-          width: 60,
-          padding: '2px 5px',
-          border: '1px solid var(--border)',
-          borderRadius: 4,
-          fontSize: '.78rem',
-          fontWeight: 700,
-          color: 'var(--blue)',
-          background: '#fff',
-          fontFamily: 'inherit',
-          textAlign: 'right'
-        }
-      }), /*#__PURE__*/React.createElement("span", {
-        style: {
-          fontSize: '.68rem',
-          color: 'var(--mu)'
-        }
-      }, "\u20AC"));
-    })));
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "rg"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "ri"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "lb"
-  }, "Tafelgewicht"), /*#__PURE__*/React.createElement("div", {
-    className: "vl"
-  }, calc.tafelWeight, " ", /*#__PURE__*/React.createElement("span", {
-    className: "un"
-  }, "kg"))), /*#__PURE__*/React.createElement("div", {
-    className: "ri"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "lb"
-  }, "Preis/kg"), /*#__PURE__*/React.createElement("div", {
-    className: "vl"
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    value: matPreisKg,
-    onChange: function onChange(e) {
-      return setMatPreisKg(+e.target.value || 0);
-    },
-    step: "0.01",
-    style: {
-      width: 70,
-      padding: '2px 6px',
-      border: '1px solid var(--border)',
-      borderRadius: 4,
-      fontSize: '.85rem',
-      fontWeight: 700,
-      color: 'var(--blue)',
-      background: 'var(--bg)',
-      fontFamily: 'inherit'
-    }
-  }), " ", /*#__PURE__*/React.createElement("span", {
-    className: "un"
-  }, "\u20AC"))), /*#__PURE__*/React.createElement("div", {
-    className: "ri"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "lb"
-  }, "Material (Tafel)"), /*#__PURE__*/React.createElement("div", {
-    className: "vl"
-  }, costs.matCost, " ", /*#__PURE__*/React.createElement("span", {
-    className: "un"
-  }, "\u20AC"))), /*#__PURE__*/React.createElement("div", {
-    className: "ri"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "lb"
-  }, "+ Zuschlag"), /*#__PURE__*/React.createElement("div", {
-    className: "vl"
-  }, costs.matWith, " ", /*#__PURE__*/React.createElement("span", {
-    className: "un"
-  }, "\u20AC")))), /*#__PURE__*/React.createElement("div", {
-    className: "fr",
-    style: {
-      marginTop: 12
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "fg"
-  }, /*#__PURE__*/React.createElement("label", null, "Material-Zuschlag"), /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    value: matZuschlag,
-    onChange: function onChange(e) {
-      return setMatZuschlag(+e.target.value || 0);
-    },
-    step: ".05"
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "fg"
-  }, /*#__PURE__*/React.createElement("label", null, "Gewinn-Zuschlag"), /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    value: gewinnZuschlag,
-    onChange: function onChange(e) {
-      return setGewinnZuschlag(+e.target.value || 0);
-    },
-    step: ".05"
-  })))), /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      marginTop: 16
-    }
-  }, /*#__PURE__*/React.createElement("h3", null, "Preis\xFCbersicht"), /*#__PURE__*/React.createElement("table", {
-    className: "ct"
-  }, /*#__PURE__*/React.createElement("tbody", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, "Materialpreis (inkl. Zuschlag)"), /*#__PURE__*/React.createElement("td", null, costs.matWith.toFixed(2), "\u20AC")), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, "Fertigungskosten"), /*#__PURE__*/React.createElement("td", null, costs.fertTotal.toFixed(2), "\u20AC")), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, "Lackkosten"), /*#__PURE__*/React.createElement("td", null, lackKosten.toFixed(2), "\u20AC")), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, "Versand & Verpackung"), /*#__PURE__*/React.createElement("td", null, costs.versand.toFixed(2), "\u20AC")), /*#__PURE__*/React.createElement("tr", {
-    style: {
-      borderTop: "2px solid var(--border)"
-    }
-  }, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("strong", null, "Gesamtkosten")), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("strong", null, costs.total.toFixed(2), "\u20AC"))), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, "Gewinnzuschlag (", (gewinnZuschlag * 100).toFixed(0), "%)"), /*#__PURE__*/React.createElement("td", null, costs.gewinn.toFixed(2), "\u20AC")))))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      marginBottom: 16
-    }
-  }, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center'
-    }
-  }, "Fertigungszeiten", /*#__PURE__*/React.createElement("button", {
-    onClick: function onClick() {
-      return setShowRateEditor(!showRateEditor);
-    },
-    style: {
-      fontSize: '.72rem',
-      padding: '3px 10px',
-      borderRadius: 4,
-      border: '1px solid var(--border)',
-      background: showRateEditor ? 'var(--blue)' : 'var(--bg)',
-      color: showRateEditor ? '#fff' : 'var(--mu)',
-      cursor: 'pointer',
-      fontFamily: 'inherit'
-    }
-  }, "\u2699 Stundens\xE4tze")), showRateEditor && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginBottom: 14,
-      padding: 12,
-      background: 'var(--bg)',
-      borderRadius: 8,
-      border: '1px solid var(--border)'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: '.75rem',
-      color: 'var(--mu)',
-      marginBottom: 8,
-      fontWeight: 600
-    }
-  }, "Stundens\xE4tze bearbeiten (\u20AC/Std netto)"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
-      gap: '6px 16px'
-    }
-  }, machineRates.map(function (m, i) {
-    return /*#__PURE__*/React.createElement("div", {
-      key: i,
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6
-      }
-    }, /*#__PURE__*/React.createElement("span", {
-      style: {
-        flex: 1,
-        fontSize: '.78rem',
-        color: 'var(--tx)'
-      }
-    }, m.name), /*#__PURE__*/React.createElement("input", {
-      type: "number",
-      value: m.rate,
-      onChange: function onChange(e) {
-        var v = parseFloat(e.target.value) || 0;
-        setMachineRates(function (p) {
-          return p.map(function (x, j) {
-            return j === i ? _objectSpread(_objectSpread({}, x), {}, {
-              rate: v
-            }) : x;
-          });
-        });
-      },
-      step: "1",
-      min: "0",
-      style: {
-        width: 65,
-        padding: '3px 6px',
-        border: '1px solid var(--border)',
-        borderRadius: 4,
-        fontSize: '.8rem',
-        fontWeight: 700,
-        color: 'var(--blue)',
-        background: '#fff',
-        fontFamily: 'inherit',
-        textAlign: 'right'
-      }
-    }), /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontSize: '.72rem',
-        color: 'var(--mu)'
-      }
-    }, "\u20AC"));
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 8,
-      display: 'flex',
-      gap: 8
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: function onClick() {
-      return setMachineRates(DEFAULT_MACHINES.map(function (m) {
-        return _objectSpread({}, m);
-      }));
-    },
-    style: {
-      fontSize: '.7rem',
-      padding: '3px 8px',
-      borderRadius: 4,
-      border: '1px solid var(--border)',
-      background: '#fff',
-      color: 'var(--mu)',
-      cursor: 'pointer',
-      fontFamily: 'inherit'
-    }
-  }, "\u21BA Zur\xFCcksetzen"))), /*#__PURE__*/React.createElement("table", {
-    className: "ct"
-  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Maschine"), /*#__PURE__*/React.createElement("th", null, "Min"), /*#__PURE__*/React.createElement("th", null, "\u20AC/h"), /*#__PURE__*/React.createElement("th", null, "Summe"))), /*#__PURE__*/React.createElement("tbody", null, costs.fertItems.map(function (it, i) {
-    return /*#__PURE__*/React.createElement("tr", {
-      key: i
-    }, /*#__PURE__*/React.createElement("td", null, it.name), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("input", {
-      type: "number",
-      value: workTimes[i] || "",
-      onChange: function onChange(e) {
-        return updateWT(i, e.target.value);
-      },
-      step: "5",
-      style: {
-        width: 60,
-        padding: "4px 8px",
-        background: "var(--bg)",
-        border: "1px solid var(--border)",
-        borderRadius: 4,
-        color: "var(--tx)",
-        fontSize: ".82rem",
-        fontFamily: "inherit"
-      },
-      min: "0"
-    })), /*#__PURE__*/React.createElement("td", {
-      style: {
-        color: "var(--mu)"
-      }
-    }, it.rate), /*#__PURE__*/React.createElement("td", null, it.cost.toFixed(2), "\u20AC"));
-  }), /*#__PURE__*/React.createElement("tr", {
-    className: "total"
-  }, /*#__PURE__*/React.createElement("td", {
-    colSpan: "3"
-  }, "Fertigungskosten"), /*#__PURE__*/React.createElement("td", null, costs.fertTotal.toFixed(2), "\u20AC")))), /*#__PURE__*/React.createElement("div", {
-    className: "fr",
-    style: {
-      marginTop: 12
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "fg"
-  }, /*#__PURE__*/React.createElement("label", null, "Lackkosten (\u20AC)"), /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    value: lackKosten,
-    onChange: function onChange(e) {
-      return setLackKosten(+e.target.value || 0);
-    }
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "fg"
-  }, /*#__PURE__*/React.createElement("label", null, "Sonstige (\u20AC)"), /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    value: sonstigeKosten,
-    onChange: function onChange(e) {
-      return setSonstigeKosten(+e.target.value || 0);
-    }
-  })))), /*#__PURE__*/React.createElement("div", {
-    className: "card"
-  }, /*#__PURE__*/React.createElement("h3", null, "Versand"), /*#__PURE__*/React.createElement("div", {
-    className: "fr"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "fg"
-  }, /*#__PURE__*/React.createElement("label", null, "Versandart"), /*#__PURE__*/React.createElement("select", {
-    value: shippingIdx,
-    onChange: function onChange(e) {
-      return setShippingIdx(+e.target.value);
-    }
-  }, /*#__PURE__*/React.createElement("option", {
-    value: -1
-  }, "Kein"), SHIPPING.map(function (sh, i) {
-    return /*#__PURE__*/React.createElement("option", {
-      key: i,
-      value: i
-    }, sh.name, " \u2014 ", sh.cost, "\u20AC");
-  }))), /*#__PURE__*/React.createElement("div", {
-    className: "fg"
-  }, /*#__PURE__*/React.createElement("label", null, "Palette"), /*#__PURE__*/React.createElement("select", {
-    value: paletteIdx,
-    onChange: function onChange(e) {
-      return setPaletteIdx(+e.target.value);
-    }
-  }, PALETTEN.map(function (p, i) {
-    return /*#__PURE__*/React.createElement("option", {
-      key: i,
-      value: i
-    }, p.name, " \u2014 ", p.price, "\u20AC");
-  }))))))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: 'var(--blue)',
-      borderRadius: 12,
-      padding: '20px 32px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      boxShadow: '0 4px 16px rgba(27,94,158,.25)',
-      marginTop: 16
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: '#fff',
-      fontWeight: 700,
-      fontSize: '1.1rem',
-      textTransform: 'uppercase',
-      letterSpacing: '.5px'
-    }
-  }, "Verkaufspreis"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: '#fff',
-      fontWeight: 800,
-      fontSize: '2.2rem'
-    }
-  }, costs.vk.toFixed(2), " \u20AC")), stueck > 1 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 8,
-      background: 'var(--bg)',
-      borderRadius: 8,
-      padding: '12px 32px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      border: '2px solid var(--blue)'
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: 'var(--mu)',
-      fontWeight: 600,
-      fontSize: '.95rem'
-    }
-  }, "St\xFCckpreis"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: 'var(--blue)',
-      fontWeight: 700,
-      fontSize: '1.4rem'
-    }
-  }, costs.stk.toFixed(2), " \u20AC")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 16,
-      paddingTop: 16,
-      borderTop: '1px solid var(--gray-xl)'
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: sendToKalkulation,
-    disabled: kalkLoading,
-    style: {
-      width: '100%',
-      padding: '14px 20px',
-      background: kalkLoading ? 'var(--gray-l)' : 'var(--blue)',
-      color: '#fff',
-      border: 'none',
-      borderRadius: 8,
-      fontWeight: 700,
-      fontSize: '1.05rem',
-      cursor: kalkLoading ? 'wait' : 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 8,
-      transition: 'background .15s'
-    }
-  }, kalkLoading ? "Wird gesendet…" : "\u2197 An Sickinger Kalkulation senden"), kalkMsg && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 10,
-      padding: '10px 14px',
-      borderRadius: 6,
-      fontSize: '.9rem',
-      fontWeight: 600,
-      textAlign: 'center',
-      background: kalkMsg.indexOf('\u2713') === 0 ? 'rgba(34,139,34,0.1)' : 'rgba(200,40,40,0.1)',
-      color: kalkMsg.indexOf('\u2713') === 0 ? '#1a7a1a' : '#c02828'
-    }
-  }, kalkMsg), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 8,
-      fontSize: '.78rem',
-      color: 'var(--mu)',
-      textAlign: 'center'
-    }
-  }, "\u00DCbertr\u00E4gt Ronde \u00D8", Ronde, ", ", werkstoff, ", s=", s, "mm, St\u00FCck ", stueck || 1, " inkl. DXF automatisch"))), subTab === "export" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, "Ro-Drad = De + 2\xD7R = ", De, " + ", 2 * R, " = ", /*#__PURE__*/React.createElement("strong", null, calc.Ro_Drad), /*#__PURE__*/React.createElement("br", null), "Di = Ro_Drad \u2212 4\xD7R\xD73.14\xD7\u03B1i/360\xD7(1\u22120.0477) \u2212 2\xD7\xDCberstand", /*#__PURE__*/React.createElement("br", null), "\xA0\xA0= ", calc.Ro_Drad, " \u2212 ", (4 * R * 3.14 * ai / 360 * (1 - 0.0477)).toFixed(2), " \u2212 ", 2 * Ueberstand, " = ", /*#__PURE__*/React.createElement("strong", null, calc.Di), /*#__PURE__*/React.createElement("br", null), "H = R\xD7(1\u2212sin(90\xB0\u2212\u03B1i)) + \xDCberstand", /*#__PURE__*/React.createElement("br", null), "\xA0\xA0= ", R, "\xD7", (1 - Math.sin((90 - ai) * Math.PI / 180)).toFixed(4), " + ", Ueberstand, " = ", /*#__PURE__*/React.createElement("strong", null, calc.H))))), subTab === "export" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "grid"
   }, /*#__PURE__*/React.createElement("div", {
     className: "card"
@@ -4389,7 +3865,28 @@ function App() {
       padding: "6px 14px",
       fontSize: ".75rem"
     }
-  }, "Befehl kopieren")))))))), subTab === "pdf" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, "Befehl kopieren")))))), /*#__PURE__*/React.createElement("div", {
+    style: {marginTop: 24, paddingTop: 16, borderTop: '2px solid var(--blue)'}
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: sendToKalkulation,
+    disabled: kalkLoading,
+    style: {
+      width: '100%', padding: '14px 20px',
+      background: kalkLoading ? 'var(--gray-l)' : 'var(--blue)',
+      color: '#fff', border: 'none', borderRadius: 8,
+      fontWeight: 700, fontSize: '1.05rem',
+      cursor: kalkLoading ? 'wait' : 'pointer',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      gap: 8, transition: 'background .15s'
+    }
+  }, kalkLoading ? "Wird gesendet…" : "↗ An Sickinger Kalkulation senden"),
+  kalkMsg && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10, padding: '10px 14px', borderRadius: 6,
+      fontSize: '.9rem', fontWeight: 600, textAlign: 'center',
+      background: 'var(--bg)', color: 'var(--blue)', border: '1px solid var(--blue)'
+    }
+  }, kalkMsg)))), subTab === "pdf" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
       maxWidth: 700,
       margin: "0 auto"
